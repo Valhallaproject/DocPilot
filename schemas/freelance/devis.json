@@ -1,0 +1,93 @@
+{
+  "title": "Devis",
+  "description": "Génération d'un devis professionnel pour freelance.",
+  "fields": [
+    {
+      "name": "devis_number",
+      "label": "Numéro du devis",
+      "type": "text",
+      "placeholder": "2024-001",
+      "required": true
+    },
+    {
+      "name": "devis_date",
+      "label": "Date du devis",
+      "type": "date",
+      "required": true
+    },
+    {
+      "name": "valid_until",
+      "label": "Valable jusqu'au",
+      "type": "date",
+      "required": true
+    },
+
+    {
+      "group": "freelance",
+      "label": "Informations du freelance",
+      "fields": [
+        { "name": "freelance_name", "label": "Nom / Entreprise", "type": "text", "required": true },
+        { "name": "freelance_activity", "label": "Activité", "type": "text", "required": true },
+        { "name": "freelance_address", "label": "Adresse", "type": "text", "required": true },
+        { "name": "freelance_zip", "label": "Code postal", "type": "text", "required": true },
+        { "name": "freelance_city", "label": "Ville", "type": "text", "required": true },
+        { "name": "freelance_siret", "label": "SIRET", "type": "text", "required": false },
+        { "name": "freelance_email", "label": "Email", "type": "email", "required": true },
+        { "name": "freelance_phone", "label": "Téléphone", "type": "text", "required": false },
+        { "name": "freelance_legal_notice", "label": "Mentions légales", "type": "textarea", "required": false }
+      ]
+    },
+
+    {
+      "group": "client",
+      "label": "Informations du client",
+      "fields": [
+        { "name": "client_name", "label": "Nom du client", "type": "text", "required": true },
+        { "name": "client_company", "label": "Entreprise (optionnel)", "type": "text", "required": false },
+        { "name": "client_address", "label": "Adresse", "type": "text", "required": true },
+        { "name": "client_zip", "label": "Code postal", "type": "text", "required": true },
+        { "name": "client_city", "label": "Ville", "type": "text", "required": true },
+        { "name": "client_email", "label": "Email", "type": "email", "required": false }
+      ]
+    },
+
+    {
+      "group": "project",
+      "label": "Détails du projet",
+      "fields": [
+        { "name": "project_title", "label": "Titre du projet", "type": "text", "required": true },
+        { "name": "project_description", "label": "Description", "type": "textarea", "required": false }
+      ]
+    },
+
+    {
+      "name": "items",
+      "label": "Prestations",
+      "type": "array",
+      "itemFields": [
+        { "name": "label", "label": "Description", "type": "text", "required": true },
+        { "name": "quantity", "label": "Quantité", "type": "number", "required": true },
+        { "name": "unit_price", "label": "Prix unitaire HT (€)", "type": "number", "required": true }
+      ]
+    },
+
+    {
+      "name": "tva_rate",
+      "label": "Taux de TVA (%)",
+      "type": "number",
+      "default": 20,
+      "required": true
+    },
+
+    {
+      "group": "conditions",
+      "label": "Conditions",
+      "fields": [
+        { "name": "delivery_delay", "label": "Délais de réalisation", "type": "text", "required": false },
+        { "name": "payment_terms", "label": "Modalités de paiement", "type": "text", "required": false },
+        { "name": "deposit_percent", "label": "Acompte (%)", "type": "number", "required": false },
+        { "name": "signature_date", "label": "Date de signature", "type": "date", "required": false }
+      ]
+    }
+  ]
+}
