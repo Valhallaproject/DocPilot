@@ -50,6 +50,7 @@
   </style>
 </head>
 <body>
+
   <!-- En-tête -->
   <div class="header">
     <div>
@@ -98,16 +99,11 @@
           <th>Total HT</th>
         </tr>
       </thead>
+
       <tbody>
-        {{#each items}}
-        <tr>
-          <td>{{this.label}}</td>
-          <td>{{this.quantity}}</td>
-          <td>{{this.unit_price}} €</td>
-          <td>{{this.total}} €</td>
-        </tr>
-        {{/each}}
+        {{items_rows}}
       </tbody>
+
       <tfoot>
         <tr>
           <td colspan="3" class="text-right">Sous-total HT</td>
@@ -134,7 +130,7 @@
       Acompte : {{deposit_percent}} % soit {{deposit_amount}} €
     </p>
     <p class="muted">
-      Le présent devis est valable jusqu'au {{valid_until}}. <br />
+      Le présent devis est valable jusqu'au {{valid_until}}.<br />
       Toute acceptation vaut accord sur les conditions générales de vente.
     </p>
   </div>
@@ -159,5 +155,6 @@
       DocPilot — Génération automatique de documents pour freelances
     </p>
   </div>
+
 </body>
 </html>

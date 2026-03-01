@@ -2,71 +2,119 @@
 
 import { useEffect, useState } from "react";
 
+type Document = {
+  id: string;
+  template: string;
+  createdAt: string;
+  pdfUrl: string | null;
+  data: any;
+};
+
 export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
-    async function fetchDocuments() {
-      try {
-        const res = await fetch("/api/documents");
-        const data = await res.json();
-        setDocuments(data);
-      } catch (err) {
-        console.error("Error fetching documents:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchDocuments();
+    fetch("/api/documents")
+      .then((res) => res.json())
+      .then((data) => setDocuments(data));
   }, []);
 
-  if (loading) {
-    return <div className="p-6 text-gray-600">Chargement…</div>;
+  const generatePdf = async (id: string) => {
+  try {
+    const res = await fetch(`/api/documents/${id}/download`, {
+      method: "GET",
+    });
+
+    if (!res.ok) {
+      console.error("Erreur API:", res.status);
+      return;
+    }
+
+    const data = await res.json();
+    console.log("Réponse /download:", data);
+
+    if (data.pdfUrl) {
+      setDocuments((docs) =>
+        docs.map((d) => (d.id === id ? { ...d, pdfUrl: data.pdfUrl } : d))
+      );
+    }
+  } catch (e) {
+    console.error("Erreur generatePdf:", e);
   }
+};
+
+
+  const deleteDocument = async (id: string) => {
+    await fetch(`/api/documents/${id}`, { method: "DELETE" });
+    setDocuments((docs) => docs.filter((d) => d.id !== id));
+  };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-6">Mes documents</h1>
+    <div className="p-10">
+      <h1 className="text-3xl font-bold mb-8">Mes documents</h1>
 
-      {documents.length === 0 && (
-        <p className="text-gray-500">Aucun document pour le moment.</p>
-      )}
+      <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+        <table className="w-full text-left">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-6 py-4 text-sm font-semibold text-gray-600">Template</th>
+              <th className="px-6 py-4 text-sm font-semibold text-gray-600">Créé le</th>
+              <th className="px-6 py-4 text-sm font-semibold text-gray-600">Statut</th>
+              <th className="px-6 py-4 text-sm font-semibold text-gray-600 text-right">Actions</th>
+            </tr>
+          </thead>
 
-      <div className="space-y-4">
-        {documents.map((doc) => (
-          <div
-            key={doc.id}
-            className="border rounded-lg p-4 flex justify-between items-center bg-white shadow-sm"
-          >
-            <div>
-              <p className="font-medium capitalize">{doc.template}</p>
-              <p className="text-sm text-gray-500">
-                Créé le {new Date(doc.createdAt).toLocaleDateString("fr-FR")}
-              </p>
-            </div>
+          <tbody className="divide-y">
+            {documents.map((doc) => (
+              <tr key={doc.id} className="hover:bg-gray-50 transition">
+                <td className="px-6 py-4 font-medium">{doc.template}</td>
 
-            <div className="flex gap-3">
-              <button className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                Télécharger
-              </button>
-              <button className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">
-                Dupliquer
-              </button>
-              <button
-                onClick={async () => {
-                    await fetch(`/api/documents/${doc.id}`, { method: "DELETE" });
-                    setDocuments((docs) => docs.filter((d) => d.id !== doc.id));
-                }}
-                className="px-3 py-1 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200"
-                >
-                Supprimer
-                </button>
+                <td className="px-6 py-4 text-gray-600">
+                  {new Date(doc.createdAt).toLocaleString()}
+                </td>
 
-            </div>
-          </div>
-        ))}
+                <td className="px-6 py-4">
+                  {doc.pdfUrl ? (
+                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-green-100 text-green-700 rounded-full">
+                      PDF prêt
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-1 text-sm font-medium bg-yellow-100 text-yellow-700 rounded-full">
+                      En attente
+                    </span>
+                  )}
+                </td>
+
+                <td className="px-6 py-4 text-right space-x-3">
+                  {doc.pdfUrl ? (
+                    <a
+                      href={doc.pdfUrl}
+                      target="_blank"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    >
+                      Télécharger
+                    </a>
+                  ) : (
+                    <button
+                        onClick={() => generatePdf(doc.id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                        >
+                        Générer PDF
+                    </button>
+
+                  )}
+
+                  <button
+                    onClick={() => deleteDocument(doc.id)}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                  >
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
