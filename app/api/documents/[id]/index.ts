@@ -4,32 +4,33 @@ import { auth } from "@clerk/nextjs/server";
 
 export async function DELETE(
   req: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId } = await auth();
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await context.params;
-
-    // Vérifie que le document appartient bien à l'utilisateur
-    const doc = await prisma.document.findUnique({
-      where: { id },
+    const document = await prisma.document.findUnique({
+      where: { id: params.id },
     });
 
-    if (!doc || doc.userId !== userId) {
+    if (!document || document.userId !== userId) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
     await prisma.document.delete({
-      where: { id },
+      where: { id: params.id },
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE error:", error);
-    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
+    console.error("Error deleting document:", error);
+    return NextResponse.json(
+      { error: "Failed to delete document" },
+      { status: 500 }
+    );
   }
 }

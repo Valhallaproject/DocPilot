@@ -1,3 +1,5 @@
+"use client";
+
 import FormBuilder from "@/components/form-builder/FormBuilder";
 import devisSchema from "@/schemas/freelance/devis.json";
 
