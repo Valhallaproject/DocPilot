@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Facture {{invoice_number}}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; color: #111827; margin: 40px; }
+    .header, .footer { width: 100%; }
+    .header { display: flex; justify-content: space-between; margin-bottom: 24px; }
+    .section-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; color: #6B7280; }
+    .box { border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 8px; border-bottom: 1px solid #E5E7EB; text-align: left; }
+    th { background: #F9FAFB; font-size: 11px; color: #6B7280; }
+    .text-right { text-align: right; }
+    .totals td { border: none; }
+    .totals .label { color: #6B7280; }
+    .totals .value { font-weight: 600; }
+    .footer { margin-top: 40px; font-size: 10px; color: #6B7280; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="section-title">Freelance</div>
+      <div>{{freelance_name}}</div>
+      <div>{{freelance_company}}</div>
+      <div>{{freelance_address}}</div>
+      <div>{{freelance_siret}}</div>
+      <div>{{freelance_vat_number}}</div>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 18px; font-weight: 700;">FACTURE</div>
+      <div>Facture n° {{invoice_number}}</div>
+      <div>Émise le {{invoice_date}}</div>
+      <div>Échéance le {{due_date}}</div>
+    </div>
+  </div>
+
+  <!-- CLIENT -->
+  <div class="box">
+    <div class="section-title">Client</div>
+    <div>{{client_name}}</div>
+    <div>{{client_company}}</div>
+    <div>{{client_address}}</div>
+    <div>{{client_vat_number}}</div>
+  </div>
+
+  <!-- SERVICES -->
+  <div class="box">
+    <div class="section-title">Détail des prestations</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th class="text-right">Quantité</th>
+          <th class="text-right">Prix unitaire HT</th>
+          <th class="text-right">Total HT</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{items_rows}}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTALS -->
+  <div class="box" style="max-width: 320px; margin-left: auto;">
+    <table class="totals">
+      <tr>
+        <td class="label">Total HT</td>
+        <td class="value text-right">{{subtotal_ht}} €</td>
+      </tr>
+      <tr>
+        <td class="label">TVA ({{tva_rate}} %)</td>
+        <td class="value text-right">{{tva_amount}} €</td>
+      </tr>
+      <tr>
+        <td class="label">Total TTC</td>
+        <td class="value text-right">{{total_ttc}} €</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- CONDITIONS -->
+  <div class="box">
+    <div class="section-title">Conditions de paiement</div>
+    <div>{{payment_terms}}</div>
+    <div style="margin-top: 8px;">Mode de paiement : {{payment_method}}</div>
+    <div style="margin-top: 8px; font-size: 11px; color: #6B7280;">
+      Tout retard de paiement donnera lieu à l’application de pénalités de retard conformément à la loi en vigueur.
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    {{freelance_legal_footer}}
+  </div>
+
+</body>
+</html>

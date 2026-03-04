@@ -1,21 +1,16 @@
 "use client";
 
 import FormBuilder from "@/components/form-builder/FormBuilder";
-import devisSchema from "@/schemas/freelance/devis.json";
+import devisSchema from "@/schemas/freelance/devis";
 
 export default function GenerateDevisPage() {
   const handleSubmit = async (data: any) => {
-  const flatData = {
-    ...data.freelance,
-    items: data.items
-  };
-
   const saveRes = await fetch("/api/documents", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      template: "freelance/devis",
-      data: flatData,
+      template: "devis",
+      data, // ← on envoie tout
     }),
   });
 
@@ -28,11 +23,13 @@ export default function GenerateDevisPage() {
 };
 
 
-
-
   return (
     <div className="max-w-3xl mx-auto py-10">
-      <FormBuilder schema={devisSchema} onSubmit={handleSubmit} />
+      <FormBuilder
+        schema={devisSchema}
+        template="devis"   // ← obligatoire
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

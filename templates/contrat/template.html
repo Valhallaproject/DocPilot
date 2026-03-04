@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contrat {{contract_title}}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; color: #111827; margin: 40px; line-height: 1.5; }
+    h1 { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 24px; }
+    h2 { font-size: 14px; font-weight: 600; margin-top: 18px; margin-bottom: 6px; text-transform: uppercase; color: #374151; }
+    .section { margin-bottom: 12px; }
+    .parties { border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    .signature-block { display: flex; justify-content: space-between; margin-top: 40px; }
+    .signature { width: 45%; font-size: 11px; }
+    .signature-line { margin-top: 40px; border-top: 1px solid #D1D5DB; padding-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Contrat de prestation de services</h1>
+
+  <!-- PARTIES -->
+  <div class="parties">
+    <div class="section">
+      <strong>Entre les soussignés :</strong>
+    </div>
+    <div class="section">
+      <strong>Le Prestataire :</strong><br />
+      {{freelance_name}}<br />
+      {{freelance_company}}<br />
+      {{freelance_address}}<br />
+      SIRET : {{freelance_siret}}<br />
+      {{freelance_email}}
+    </div>
+    <div class="section">
+      <strong>Le Client :</strong><br />
+      {{client_name}}<br />
+      {{client_company}}<br />
+      {{client_address}}<br />
+      {{client_email}}
+    </div>
+    <div class="section">
+      Ci-après désignés ensemble les « Parties ».
+    </div>
+  </div>
+
+  <!-- OBJET -->
+  <div class="section">
+    <h2>Article 1 – Objet du contrat</h2>
+    <p>
+      Le présent contrat a pour objet de définir les conditions dans lesquelles le Prestataire
+      réalise la mission suivante pour le Client :
+    </p>
+    <p><strong>Intitulé de la mission :</strong> {{mission_title}}</p>
+    <p><strong>Description détaillée :</strong><br />{{mission_description}}</p>
+  </div>
+
+  <!-- DURÉE -->
+  <div class="section">
+    <h2>Article 2 – Durée de la mission</h2>
+    <p>
+      La mission débute le <strong>{{start_date}}</strong> et se termine le
+      <strong>{{end_date}}</strong>, sauf prolongation ou résiliation anticipée dans les
+      conditions prévues au présent contrat.
+    </p>
+  </div>
+
+  <!-- RÉMUNÉRATION -->
+  <div class="section">
+    <h2>Article 3 – Rémunération</h2>
+    <p>
+      En contrepartie de la réalisation de la mission, le Client s’engage à verser au Prestataire
+      une rémunération de :
+    </p>
+    <p>
+      <strong>Montant :</strong> {{price_ht}} € HT<br />
+      <strong>TVA :</strong> {{tva_rate}} %<br />
+      <strong>Montant TTC :</strong> {{price_ttc}} € TTC
+    </p>
+    <p>
+      Les modalités de facturation et de paiement sont les suivantes : {{payment_terms}}.
+    </p>
+  </div>
+
+  <!-- OBLIGATIONS -->
+  <div class="section">
+    <h2>Article 4 – Obligations du Prestataire</h2>
+    <p>
+      Le Prestataire s’engage à exécuter la mission avec soin, diligence et professionnalisme,
+      conformément aux règles de l’art et aux usages de la profession.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Article 5 – Obligations du Client</h2>
+    <p>
+      Le Client s’engage à fournir au Prestataire l’ensemble des informations, accès et ressources
+      nécessaires à la bonne exécution de la mission, et à valider les livrables dans des délais
+      raisonnables.
+    </p>
+  </div>
+
+  <!-- CONFIDENTIALITÉ -->
+  <div class="section">
+    <h2>Article 6 – Confidentialité</h2>
+    <p>
+      {{confidentiality_clause}}
+    </p>
+  </div>
+
+  <!-- PROPRIÉTÉ INTELLECTUELLE -->
+  <div class="section">
+    <h2>Article 7 – Propriété intellectuelle</h2>
+    <p>
+      {{ip_clause}}
+    </p>
+  </div>
+
+  <!-- RÉSILIATION -->
+  <div class="section">
+    <h2>Article 8 – Résiliation</h2>
+    <p>
+      Chaque Partie pourra résilier le présent contrat en cas de manquement grave de l’autre Partie
+      à l’une de ses obligations, après mise en demeure restée sans effet pendant un délai de
+      {{termination_notice}} jours.
+    </p>
+  </div>
+
+  <!-- DROIT APPLICABLE -->
+  <div class="section">
+    <h2>Article 9 – Droit applicable et juridiction compétente</h2>
+    <p>
+      Le présent contrat est régi par le droit français. Tout litige relatif à sa validité,
+      son interprétation ou son exécution sera soumis aux tribunaux compétents du ressort de
+      {{jurisdiction_city}}.
+    </p>
+  </div>
+
+  <!-- SIGNATURES -->
+  <div class="signature-block">
+    <div class="signature">
+      <div>Fait à {{contract_city}}, le {{contract_date}}</div>
+      <div class="signature-line">
+        <strong>Le Prestataire</strong><br />
+        {{freelance_name}}
+      </div>
+    </div>
+    <div class="signature">
+      <div>&nbsp;</div>
+      <div class="signature-line">
+        <strong>Le Client</strong><br />
+        {{client_name}}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
