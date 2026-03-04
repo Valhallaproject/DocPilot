@@ -1,52 +1,74 @@
-"use client";
+export default function Field({ field, value, onChange }: any) {
+  const isReadOnly = field.readOnly || field.compute;
 
-import React from "react";
+  return (
+    <div className="mb-3">
+      <label className="block text-sm font-medium mb-1">{field.label}</label>
 
-interface FieldProps {
-  field: any;
-  value: any;
-  onChange: (value: any) => void;
-}
+      {/* Champ texte */}
+      {field.type === "text" && (
+        <input
+          type="text"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          readOnly={isReadOnly}
+          className={`w-full border rounded px-3 py-2 ${
+            isReadOnly ? "bg-gray-100 text-gray-600" : ""
+          }`}
+        />
+      )}
 
-export default function Field({ field, value, onChange }: FieldProps) {
-  const commonProps = {
-    id: field.name,
-    name: field.name,
-    value: value || "",
-    onChange: (e: any) => onChange(e.target.value),
-    className:
-      "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-  };
+      {/* Champ number */}
+      {field.type === "number" && (
+        <input
+          type="number"
+          value={value || 0}
+          onChange={(e) => onChange(Number(e.target.value))}
+          readOnly={isReadOnly}
+          className={`w-full border rounded px-3 py-2 ${
+            isReadOnly ? "bg-gray-100 text-gray-600" : ""
+          }`}
+        />
+      )}
 
-  switch (field.type) {
-    case "text":
-    case "email":
-    case "number":
-    case "date":
-      return (
-        <div className="flex flex-col gap-1 mb-4">
-          <label htmlFor={field.name} className="font-medium text-sm">
-            {field.label}
-          </label>
-          <input type={field.type} placeholder={field.placeholder} {...commonProps} />
-        </div>
-      );
+      {/* Champ textarea */}
+      {field.type === "textarea" && (
+        <textarea
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          readOnly={isReadOnly}
+          className={`w-full border rounded px-3 py-2 ${
+            isReadOnly ? "bg-gray-100 text-gray-600" : ""
+          }`}
+        />
+      )}
 
-    case "textarea":
-      return (
-        <div className="flex flex-col gap-1 mb-4">
-          <label htmlFor={field.name} className="font-medium text-sm">
-            {field.label}
-          </label>
-          <textarea
-            placeholder={field.placeholder}
-            {...commonProps}
-            rows={4}
-          />
-        </div>
-      );
+      {/* Champ date */}
+      {field.type === "date" && (
+        <input
+          type="date"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          readOnly={isReadOnly}
+          className={`w-full border rounded px-3 py-2 ${
+            isReadOnly ? "bg-gray-100 text-gray-600" : ""
+          }`}
+        />
+      )}
 
-    default:
-      return null;
-  }
+      {/* Champ email */}
+      {field.type === "email" && (
+        <input
+          type="email"
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          readOnly={isReadOnly}
+          className={`w-full border rounded px-3 py-2 ${
+            isReadOnly ? "bg-gray-100 text-gray-600" : ""
+          }`}
+        />
+      )}
+
+    </div>
+  );
 }

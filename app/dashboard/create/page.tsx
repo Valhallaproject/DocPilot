@@ -1,273 +1,185 @@
 "use client";
 
-import { useState } from "react";
-import type { ReactNode, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
-/* -------------------------------------------------------
-   TYPES
-------------------------------------------------------- */
+import devisSchema from "@/schemas/freelance/devis";
+import factureSchema from "@/schemas/freelance/facture";
+import contratSchema from "@/schemas/freelance/contrat";
 
-type Item = {
-  label: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
+import FormBuilder from "@/components/form-builder/FormBuilder";
+import { FileText, Receipt, FileSignature } from "lucide-react";
+
+const SCHEMAS: Record<string, any> = {
+  devis: devisSchema,
+  facture: factureSchema,
+  contrat: contratSchema,
 };
-
-type FormData = {
-  freelance_name: string;
-  freelance_activity: string;
-  freelance_address: string;
-  freelance_zip: string;
-  freelance_city: string;
-  freelance_siret: string;
-  freelance_email: string;
-  freelance_phone: string;
-  freelance_legal_notice: string;
-
-  client_name: string;
-  client_company: string;
-  client_address: string;
-  client_zip: string;
-  client_city: string;
-  client_email: string;
-
-  devis_number: string;
-  devis_date: string;
-  valid_until: string;
-
-  project_title: string;
-  project_description: string;
-
-  items: Item[];
-
-  subtotal_ht: number;
-  tva_rate: number;
-  tva_amount: number;
-  total_ttc: number;
-
-  delivery_delay: string;
-  payment_terms: string;
-  deposit_percent: number;
-  deposit_amount: number;
-
-  signature_date: string;
-};
-
-/* -------------------------------------------------------
-   PAGE
-------------------------------------------------------- */
 
 export default function CreateDocumentPage() {
-  const [form, setForm] = useState<FormData>({
-    freelance_name: "",
-    freelance_activity: "",
-    freelance_address: "",
-    freelance_zip: "",
-    freelance_city: "",
-    freelance_siret: "",
-    freelance_email: "",
-    freelance_phone: "",
-    freelance_legal_notice: "",
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type");
 
-    client_name: "",
-    client_company: "",
-    client_address: "",
-    client_zip: "",
-    client_city: "",
-    client_email: "",
+  const [schema, setSchema] = useState<any | null>(null);
 
-    devis_number: "",
-    devis_date: new Date().toISOString().split("T")[0],
-    valid_until: "",
+  useEffect(() => {
+    if (!type) return;
+    setSchema(SCHEMAS[type] || null);
+  }, [type]);
 
-    project_title: "",
-    project_description: "",
+  // PAGE DE SÉLECTION
+  if (!type) {
+    return (
+      <div className="p-10">
+        <h1 className="text-3xl font-bold mb-6">Créer un document</h1>
 
-    items: [
-      { label: "", quantity: 1, unit_price: 0, total: 0 }
-    ],
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-    subtotal_ht: 0,
-    tva_rate: 20,
-    tva_amount: 0,
-    total_ttc: 0,
+          {/* DEVIS */}
+          <a
+            href="/dashboard/create?type=devis"
+            className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-300 transition p-4 flex flex-col gap-4"
+          >
+            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border">
+              <img
+                src="/templates/devis.png"
+                alt="Aperçu du devis"
+                className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+              />
+            </div>
 
-    delivery_delay: "",
-    payment_terms: "",
-    deposit_percent: 0,
-    deposit_amount: 0,
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-blue-100 text-blue-600 flex items-center justify-center rounded-lg">
+                <FileText size={26} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">Devis</h2>
+                <p className="text-gray-500 text-lg">Créer un devis professionnel</p>
+              </div>
+            </div>
+          </a>
 
-    signature_date: new Date().toISOString().split("T")[0],
-  });
+          {/* FACTURE */}
+          <a
+            href="/dashboard/create?type=facture"
+            className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-green-300 transition p-4 flex flex-col gap-4"
+          >
+            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border">
+              <img
+                src="/templates/facture.png"
+                alt="Aperçu de la facture"
+                className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+              />
+            </div>
 
-  /* -------------------------------------------------------
-     HELPERS
-  ------------------------------------------------------- */
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-green-100 text-green-600 flex items-center justify-center rounded-lg">
+                <Receipt size={26} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">Facture</h2>
+                <p className="text-gray-500 text-lg">Générer une facture complète</p>
+              </div>
+            </div>
+          </a>
 
-  const update = <K extends keyof FormData>(key: K, value: FormData[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
+          {/* CONTRAT */}
+          <a
+            href="/dashboard/create?type=contrat"
+            className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-purple-300 transition p-4 flex flex-col gap-4"
+          >
+            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border">
+              <img
+                src="/templates/contrat.png"
+                alt="Aperçu du contrat"
+                className="w-full h-full object-cover group-hover:scale-[1.02] transition"
+              />
+            </div>
 
-  const updateItem = <K extends keyof Item>(index: number, key: K, value: Item[K]) => {
-    const newItems = [...form.items];
-    newItems[index][key] = value;
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-purple-100 text-purple-600 flex items-center justify-center rounded-lg">
+                <FileSignature size={26} />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800">Contrat</h2>
+                <p className="text-gray-500 text-lg">Créer un contrat professionnel</p>
+              </div>
+            </div>
+          </a>
 
-    // recalcul automatique
-    newItems[index].total = newItems[index].quantity * newItems[index].unit_price;
+        </div>
+      </div>
+    );
+  }
 
-    const subtotal = newItems.reduce((acc, item) => acc + item.total, 0);
-    const tva = (subtotal * form.tva_rate) / 100;
-    const total = subtotal + tva;
+  // TYPE INVALIDE
+  if (!schema) {
+    return (
+      <div className="p-10">
+        <h1 className="text-2xl font-bold">Type de document inconnu</h1>
+        <p className="text-gray-600 mt-2">Le type "{type}" n'existe pas.</p>
+        <a href="/dashboard/create" className="text-blue-600 underline mt-4 block">
+          Retour
+        </a>
+      </div>
+    );
+  }
 
-    setForm({
-      ...form,
-      items: newItems,
-      subtotal_ht: subtotal,
-      tva_amount: tva,
-      total_ttc: total,
-      deposit_amount: (total * form.deposit_percent) / 100,
-    });
-  };
-
-  const addItem = () => {
-    setForm({
-      ...form,
-      items: [...form.items, { label: "", quantity: 1, unit_price: 0, total: 0 }],
-    });
-  };
-
-  const createDocument = async () => {
-    await fetch("/api/documents", {
+  const handleSubmit = async (formData: any) => {
+    const res = await fetch("/api/documents", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        template: "freelance/devis",
-        data: form,
+        template: type,
+        data: formData,
       }),
     });
+
+    if (!res.ok) {
+      console.error("Erreur API:", await res.text());
+      return;
+    }
 
     window.location.href = "/dashboard/documents";
   };
 
-  /* -------------------------------------------------------
-     RENDER
-  ------------------------------------------------------- */
-
+  // PAGE DE CRÉATION — DESIGN PREMIUM
   return (
-    <div className="p-10 max-w-4xl mx-auto space-y-10">
-      <h1 className="text-4xl font-bold mb-6">Créer un devis</h1>
+    <div className="flex flex-col h-full p-10">
 
-      {/* FREELANCE */}
-      <Card title="Informations Freelance">
-        <Grid>
-          <Input label="Nom" onChange={(e) => update("freelance_name", e.target.value)} />
-          <Input label="Activité" onChange={(e) => update("freelance_activity", e.target.value)} />
-          <Input label="Adresse" onChange={(e) => update("freelance_address", e.target.value)} />
-          <Input label="Code postal" onChange={(e) => update("freelance_zip", e.target.value)} />
-          <Input label="Ville" onChange={(e) => update("freelance_city", e.target.value)} />
-          <Input label="SIRET" onChange={(e) => update("freelance_siret", e.target.value)} />
-          <Input label="Email" onChange={(e) => update("freelance_email", e.target.value)} />
-          <Input label="Téléphone" onChange={(e) => update("freelance_phone", e.target.value)} />
-        </Grid>
-      </Card>
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">Créer un {type}</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Remplissez les informations ci-dessous pour générer votre document.
+          </p>
+        </div>
 
-      {/* CLIENT */}
-      <Card title="Client">
-        <Grid>
-          <Input label="Nom" onChange={(e) => update("client_name", e.target.value)} />
-          <Input label="Entreprise" onChange={(e) => update("client_company", e.target.value)} />
-          <Input label="Adresse" onChange={(e) => update("client_address", e.target.value)} />
-          <Input label="Code postal" onChange={(e) => update("client_zip", e.target.value)} />
-          <Input label="Ville" onChange={(e) => update("client_city", e.target.value)} />
-          <Input label="Email" onChange={(e) => update("client_email", e.target.value)} />
-        </Grid>
-      </Card>
+        <a
+          href="/dashboard/create"
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+        >
+          Retour
+        </a>
+      </div>
 
-      {/* DOCUMENT */}
-      <Card title="Informations du devis">
-        <Grid>
-          <Input label="Numéro du devis" onChange={(e) => update("devis_number", e.target.value)} />
-          <Input label="Date du devis" type="date" value={form.devis_date} onChange={(e) => update("devis_date", e.target.value)} />
-          <Input label="Valable jusqu'au" type="date" onChange={(e) => update("valid_until", e.target.value)} />
-          <Input label="Titre du projet" onChange={(e) => update("project_title", e.target.value)} />
-        </Grid>
+      {/* FORMULAIRE */}
+      <div className="flex-1">
+        <FormBuilder schema={schema} template={type} onSubmit={handleSubmit} />
+      </div>
 
-        <Textarea label="Description du projet" onChange={(e) => update("project_description", e.target.value)} />
-      </Card>
-
-      {/* ITEMS */}
-      <Card title="Prestations">
-        {form.items.map((item, i) => (
-          <Grid key={i}>
-            <Input label="Prestation" onChange={(e) => updateItem(i, "label", e.target.value)} />
-            <Input label="Quantité" type="number" onChange={(e) => updateItem(i, "quantity", Number(e.target.value))} />
-            <Input label="Prix unitaire" type="number" onChange={(e) => updateItem(i, "unit_price", Number(e.target.value))} />
-          </Grid>
-        ))}
-
-        <button onClick={addItem} className="px-4 py-2 bg-gray-100 rounded-lg border">
-          + Ajouter une prestation
+      {/* FOOTER FIXE */}
+      <div className="  p-4 mt-8 flex justify-center">
+        <button
+          form="form"
+          type="submit"
+          className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
+        >
+          Générer le PDF
         </button>
-      </Card>
+      </div>
 
-      {/* CONDITIONS */}
-      <Card title="Conditions">
-        <Grid>
-          <Input label="Délai de livraison" onChange={(e) => update("delivery_delay", e.target.value)} />
-          <Input label="Modalités de paiement" onChange={(e) => update("payment_terms", e.target.value)} />
-          <Input label="Acompte (%)" type="number" onChange={(e) => update("deposit_percent", Number(e.target.value))} />
-        </Grid>
-      </Card>
-
-      <button onClick={createDocument} className="px-6 py-3 bg-blue-600 text-white rounded-lg text-lg">
-        Créer le devis
-      </button>
     </div>
   );
 }
-
-
-
-/* -------------------------------------------------------
-   UI COMPONENTS
-------------------------------------------------------- */
-
-function Card({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="bg-white shadow rounded-xl p-6 space-y-4">
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-function Grid({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-2 gap-4">{children}</div>;
-}
-
-type InputProps = {
-  label: string;
-} & InputHTMLAttributes<HTMLInputElement>;
-
-function Input({ label, ...props }: InputProps) {
-  return (
-    <label className="flex flex-col text-sm font-medium">
-      {label}
-      <input {...props} className="border p-2 rounded-lg mt-1" />
-    </label>
-  );
-}
-
-type TextareaProps = {
-  label: string;
-} & TextareaHTMLAttributes<HTMLTextAreaElement>;
-
-function Textarea({ label, ...props }: TextareaProps) {
-  return (
-    <label className="flex flex-col text-sm font-medium">
-      {label}
-      <textarea {...props} className="border p-2 rounded-lg mt-1 h-24" />
-    </label>
-  );
-}
-

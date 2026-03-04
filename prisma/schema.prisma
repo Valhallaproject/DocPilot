@@ -21,7 +21,7 @@ model Document {
   userId      String
   template    String
   data        Json
-  pdfUrl      String?
+  pdfPath      String?
   createdAt   DateTime  @default(now())
 }
 

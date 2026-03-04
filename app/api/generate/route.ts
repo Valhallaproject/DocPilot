@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       );
     }
 
-    let html = fs.readFileSync(templatePath, "utf8");
+    let html = fs.readFileSync(`templates/${template}/template.html`, "utf8");
 
     // 2) Remplacer les variables {{...}}
     html = replaceVariables(html, data);

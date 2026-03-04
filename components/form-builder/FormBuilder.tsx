@@ -2,116 +2,181 @@
 
 import React, { useState } from "react";
 import Field from "./Field";
+import { Trash2 } from "lucide-react";
+
 
 interface FormBuilderProps {
-  schema: any;
+  schema: any[];
+  template: string;
   onSubmit: (data: any) => void;
 }
 
-export default function FormBuilder({ schema, onSubmit }: FormBuilderProps) {
-  const [formData, setFormData] = useState<any>({ items: [] });
+export default function FormBuilder({ schema, template, onSubmit }: FormBuilderProps) {
+  const [formData, setFormData] = useState<any>({});
+
+  const recomputeFields = (data: any) => {
+    let updated = { ...data };
+
+    schema.forEach((section) => {
+      if (!section.array && section.fields) {
+        section.fields.forEach((field: any) => {
+          if (field.compute) updated[field.name] = field.compute(updated);
+        });
+      }
+
+      if (section.group && section.fields) {
+        section.fields.forEach((field: any) => {
+          if (field.compute) updated[section.group][field.name] = field.compute(updated[section.group]);
+        });
+      }
+
+      if (section.array && section.fields) {
+        const arr = updated[section.name] || [];
+        updated[section.name] = arr.map((item: any) => {
+          let newItem = { ...item };
+          section.fields.forEach((field: any) => {
+            if (field.compute) newItem[field.name] = field.compute(newItem);
+          });
+          return newItem;
+        });
+      }
+    });
+
+    return updated;
+  };
 
   const updateField = (name: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => recomputeFields({ ...prev, [name]: value }));
   };
 
-  const updateGroupField = (group: string, name: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [group]: { ...(prev[group] || {}), [name]: value },
-    }));
+  const updateArrayItem = (arrayName: string, index: number, field: string, value: any) => {
+    setFormData((prev: any) => {
+      const updatedArray = [...(prev[arrayName] || [])];
+      updatedArray[index] = { ...updatedArray[index], [field]: value };
+      return recomputeFields({ ...prev, [arrayName]: updatedArray });
+    });
   };
 
-  const addItem = () => {
-    setFormData((prev: any) => ({
-      ...prev,
-      items: [...(prev.items || []), { label: "", quantity: 1, unit_price: 0 }],
-    }));
+  const addArrayItem = (arrayName: string, defaultItem: any) => {
+    setFormData((prev: any) => {
+      const updated = {
+        ...prev,
+        [arrayName]: [...(prev[arrayName] || []), defaultItem],
+      };
+      return recomputeFields(updated);
+    });
   };
 
-  const updateItem = (index: number, field: string, value: any) => {
-    const updated = [...formData.items];
-    updated[index][field] = value;
-    setFormData((prev: any) => ({ ...prev, items: updated }));
+  const removeArrayItem = (arrayName: string, index: number) => {
+    setFormData((prev: any) => {
+      const updatedArray = [...(prev[arrayName] || [])];
+      updatedArray.splice(index, 1);
+
+      return recomputeFields({
+        ...prev,
+        [arrayName]: updatedArray,
+      });
+    });
   };
+
 
   return (
     <form
-      className="space-y-6"
+      id="form"
+      className="space-y-10"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(formData);
       }}
     >
-      <h1 className="text-2xl font-bold">{schema.title}</h1>
-      <p className="text-gray-600">{schema.description}</p>
+      {schema.map((section: any, index: number) => (
+        <div key={index} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          
+          {/* TITRE PREMIUM */}
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-4">
+            {section.section}
+          </h2>
 
-      {schema.fields.map((field: any, index: number) => {
-        // Groupe
-        if (field.group) {
-          return (
-            <div key={index} className="border p-4 rounded-md bg-gray-50">
-              <h2 className="font-semibold mb-2">{field.label}</h2>
-
-              {field.fields.map((sub: any, i: number) => (
+          {/* CHAMPS SIMPLES */}
+          {!section.array && !section.group && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {section.fields?.map((field: any, i: number) => (
                 <Field
                   key={i}
-                  field={sub}
-                  value={formData[field.group]?.[sub.name] || ""}
-                  onChange={(value) => updateGroupField(field.group, sub.name, value)}
+                  field={field}
+                  value={formData[field.name] || ""}
+                  onChange={(value: any) => updateField(field.name, value)}
                 />
               ))}
             </div>
-          );
-        }
+          )}
 
-        // Tableau dynamique (items)
-        if (field.type === "array") {
-          return (
-            <div key={index} className="border p-4 rounded-md bg-gray-50">
-              <h2 className="font-semibold mb-2">{field.label}</h2>
+          {/* TABLEAU (Prestations) */}
+          {section.array && (
+            <div>
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                <table className="w-full text-sm mb-4">
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      {section.fields.map((f: any, i: number) => (
+                        <th key={i} className="p-2 text-left">{f.label}</th>
+                      ))}
+                      <th className="p-2 text-right"></th> {/* colonne vide pour la poubelle */}
+                    </tr>
+                  </thead>
 
-              {formData.items?.map((item: any, i: number) => (
-                <div key={i} className="border p-3 rounded-md mb-3 bg-white">
-                  {field.itemFields.map((sub: any, j: number) => (
-                    <Field
-                      key={j}
-                      field={sub}
-                      value={item[sub.name]}
-                      onChange={(value) => updateItem(i, sub.name, value)}
-                    />
-                  ))}
-                </div>
-              ))}
+                  <tbody className="divide-y divide-gray-200">
+                    {(formData[section.name] || []).map((item: any, i: number) => (
+                      <tr key={i}>
+                        {section.fields.map((field: any, j: number) => (
+                          <td key={j} className="p-2">
+                            <Field
+                              field={field}
+                              value={item[field.name]}
+                              onChange={(value: any) =>
+                                updateArrayItem(section.name, i, field.name, value)
+                              }
+                            />
+                          </td>
+                        ))}
 
+                        {/* BOUTON SUPPRIMER */}
+                        <td className="p-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => removeArrayItem(section.name, i)}
+                            className="p-1 rounded hover:bg-red-50 transition"
+                          >
+                            <Trash2
+                              size={18}
+                              className="text-gray-400 hover:text-red-600 transition"
+                            />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* BOUTON AJOUTER UNE LIGNE */}
               <button
                 type="button"
-                onClick={addItem}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm"
+                onClick={() =>
+                  addArrayItem(
+                    section.name,
+                    Object.fromEntries(section.fields.map((f: any) => [f.name, ""]))
+                  )
+                }
+                className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition"
               >
-                Ajouter une prestation
+                Ajouter une ligne
               </button>
             </div>
-          );
-        }
+          )}
 
-        // Champ simple
-        return (
-          <Field
-            key={index}
-            field={field}
-            value={formData[field.name]}
-            onChange={(value) => updateField(field.name, value)}
-          />
-        );
-      })}
-
-      <button
-        type="submit"
-        className="px-4 py-2 bg-green-600 text-white rounded-md font-medium"
-      >
-        Générer le PDF
-      </button>
+        </div>
+      ))}
     </form>
   );
 }
