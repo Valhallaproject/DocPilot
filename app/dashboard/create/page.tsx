@@ -10,6 +10,23 @@ import contratSchema from "@/schemas/freelance/contrat";
 import FormBuilder from "@/components/form-builder/FormBuilder";
 import { FileText, Receipt, FileSignature } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+
 const SCHEMAS: Record<string, any> = {
   devis: devisSchema,
   facture: factureSchema,
@@ -18,159 +35,217 @@ const SCHEMAS: Record<string, any> = {
 
 export default function CreateDocumentPage() {
   const searchParams = useSearchParams();
-  const type = searchParams.get("type");
+  const type = (searchParams.get("type") as string) || "devis";
+  const clientIdFromUrl = searchParams.get("client");
 
   const [schema, setSchema] = useState<any | null>(null);
 
+  const [clients, setClients] = useState<any[]>([]);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [openClientSelect, setOpenClientSelect] = useState(false);
+
+  const [initialValues, setInitialValues] = useState<any>({});
+
+  // Charger la liste des clients
   useEffect(() => {
-    if (!type) return;
+    fetch("/api/clients")
+      .then((res) => res.json())
+      .then((data) => setClients(data || []))
+      .catch(() => setClients([]));
+  }, []);
+
+  // Charger le schéma selon le type
+  useEffect(() => {
     setSchema(SCHEMAS[type] || null);
   }, [type]);
 
-  // PAGE DE SÉLECTION
-  if (!type) {
-    return (
-      <div className="p-10">
-        <h1 className="text-3xl font-bold mb-6">Créer un document</h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* DEVIS */}
-          <a
-            href="/dashboard/create?type=devis"
-            className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-300 transition p-4 flex flex-col gap-4"
-          >
-            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border">
-              <img
-                src="/templates/devis.png"
-                alt="Aperçu du devis"
-                className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 flex items-center justify-center rounded-lg">
-                <FileText size={26} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">Devis</h2>
-                <p className="text-gray-500 text-lg">Créer un devis professionnel</p>
-              </div>
-            </div>
-          </a>
-
-          {/* FACTURE */}
-          <a
-            href="/dashboard/create?type=facture"
-            className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-green-300 transition p-4 flex flex-col gap-4"
-          >
-            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border">
-              <img
-                src="/templates/facture.png"
-                alt="Aperçu de la facture"
-                className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-green-100 text-green-600 flex items-center justify-center rounded-lg">
-                <Receipt size={26} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">Facture</h2>
-                <p className="text-gray-500 text-lg">Générer une facture complète</p>
-              </div>
-            </div>
-          </a>
-
-          {/* CONTRAT */}
-          <a
-            href="/dashboard/create?type=contrat"
-            className="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-purple-300 transition p-4 flex flex-col gap-4"
-          >
-            <div className="w-full aspect-[4/3] bg-gray-50 rounded-lg overflow-hidden border">
-              <img
-                src="/templates/contrat.png"
-                alt="Aperçu du contrat"
-                className="w-full h-full object-cover group-hover:scale-[1.02] transition"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 flex items-center justify-center rounded-lg">
-                <FileSignature size={26} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">Contrat</h2>
-                <p className="text-gray-500 text-lg">Créer un contrat professionnel</p>
-              </div>
-            </div>
-          </a>
-
-        </div>
-      </div>
-    );
+  // Mapping utilitaires pour initialValues (correspondent aux field.name des schemas)
+  function mapClientToInitialValuesForDevis(client: any) {
+    if (!client) return {};
+    return {
+      client_name: client.contactName ?? "",
+      client_company: client.companyName ?? "",
+      client_address: client.address ?? "",
+      client_zip: client.zip ?? "",
+      client_city: client.city ?? "",
+      client_email: client.email ?? "",
+      items:
+        client.items && client.items.length
+          ? client.items.map((it: any) => ({
+              label: it.label ?? "",
+              quantity: it.quantity ?? 1,
+              unit_price: it.unit_price ?? 0,
+              total_ht: Number(it.quantity || 0) * Number(it.unit_price || 0),
+            }))
+          : [{ label: "", quantity: 1, unit_price: 0, total_ht: 0 }],
+      tva_rate: client.tva_rate ?? 20,
+      deposit_percent: client.deposit_percent ?? 0,
+      signature_date: client.signature_date ?? "",
+    };
   }
 
-  // TYPE INVALIDE
-  if (!schema) {
-    return (
-      <div className="p-10">
-        <h1 className="text-2xl font-bold">Type de document inconnu</h1>
-        <p className="text-gray-600 mt-2">Le type "{type}" n'existe pas.</p>
-        <a href="/dashboard/create" className="text-blue-600 underline mt-4 block">
-          Retour
-        </a>
-      </div>
-    );
+  function mapClientToInitialValuesForFacture(client: any) {
+    if (!client) return {};
+    return {
+      client_name: client.contactName ?? "",
+      client_company: client.companyName ?? "",
+      client_address: client.address ?? "",
+      client_vat_number: client.vatNumber ?? "",
+      lines:
+        client.lines && client.lines.length
+          ? client.lines.map((l: any) => ({
+              label: l.label ?? "",
+              quantity: l.quantity ?? 1,
+              unit_price: l.unit_price ?? 0,
+              total_ht: Number(l.quantity || 0) * Number(l.unit_price || 0),
+            }))
+          : [{ label: "", quantity: 1, unit_price: 0, total_ht: 0 }],
+      tva_rate: client.tva_rate ?? 20,
+      payment_terms: client.payment_terms ?? "",
+      payment_method: client.payment_method ?? "",
+    };
   }
 
-  const handleSubmit = async (formData: any) => {
-    const res = await fetch("/api/documents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        template: type,
-        data: formData,
-      }),
-    });
+  function mapClientToInitialValuesForContrat(client: any) {
+    if (!client) return {};
+    return {
+      client_name: client.contactName ?? "",
+      client_company: client.companyName ?? "",
+      client_address: client.address ?? "",
+      client_email: client.email ?? "",
+      mission_title: client.mission_title ?? "",
+      mission_description: client.mission_description ?? "",
+      start_date: client.start_date ?? "",
+      end_date: client.end_date ?? "",
+      price_ht: client.price_ht ?? 0,
+      tva_rate: client.tva_rate ?? 20,
+      payment_terms: client.payment_terms ?? "",
+      confidentiality_clause: client.confidentiality_clause ?? "",
+      ip_clause: client.ip_clause ?? "",
+      termination_notice: client.termination_notice ?? 0,
+      jurisdiction_city: client.jurisdiction_city ?? "",
+      contract_city: client.contract_city ?? "",
+      contract_date: client.contract_date ?? "",
+    };
+  }
 
-    if (!res.ok) {
-      console.error("Erreur API:", await res.text());
-      return;
+  // Initialise selectedClient / initialValues depuis l'URL si présent
+  useEffect(() => {
+    if (!clientIdFromUrl) return;
+
+    if (clients && clients.length > 0) {
+      const found = clients.find((c) => String(c.id) === String(clientIdFromUrl));
+      if (found) {
+        setSelectedClient(found);
+        const mapped =
+          type === "devis"
+            ? mapClientToInitialValuesForDevis(found)
+            : type === "facture"
+            ? mapClientToInitialValuesForFacture(found)
+            : mapClientToInitialValuesForContrat(found);
+        setInitialValues(mapped);
+        return;
+      }
     }
 
-    window.location.href = "/dashboard/documents";
+    // Fallback : fetch individuel
+    fetch(`/api/clients/${clientIdFromUrl}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Client non trouvé");
+        return res.json();
+      })
+      .then((client) => {
+        setSelectedClient(client);
+        const mapped =
+          type === "devis"
+            ? mapClientToInitialValuesForDevis(client)
+            : type === "facture"
+            ? mapClientToInitialValuesForFacture(client)
+            : mapClientToInitialValuesForContrat(client);
+        setInitialValues(mapped);
+      })
+      .catch(() => {});
+  }, [clientIdFromUrl, clients, type]);
+
+  // Quand l'utilisateur choisit un client via le popover
+  function handleSelectClient(client: any) {
+    setSelectedClient(client);
+    setOpenClientSelect(false);
+
+    const mapped =
+      type === "devis"
+        ? mapClientToInitialValuesForDevis(client)
+        : type === "facture"
+        ? mapClientToInitialValuesForFacture(client)
+        : mapClientToInitialValuesForContrat(client);
+
+    setInitialValues(mapped);
+  }
+
+  // Submit handler (à adapter selon ton API)
+  const handleSubmit = async (data: any) => {
+    // Exemple : POST /api/documents
+    // await fetch("/api/documents", { method: "POST", body: JSON.stringify({ type, data }) });
   };
 
-  // PAGE DE CRÉATION — DESIGN PREMIUM
   return (
-    <div className="flex flex-col h-full p-10">
-
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Créer un {type}</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Remplissez les informations ci-dessous pour générer votre document.
-          </p>
+    <div className="p-10">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          {type === "devis" && <FileText size={28} />}
+          {type === "facture" && <Receipt size={28} />}
+          {type === "contrat" && <FileSignature size={28} />}
+          <div>
+            <h1 className="text-2xl font-bold">
+              {type === "devis" ? "Créer un devis" : type === "facture" ? "Créer une facture" : "Créer un contrat"}
+            </h1>
+            {selectedClient && <p className="text-sm text-gray-600 mt-1">{selectedClient.companyName}</p>}
+          </div>
         </div>
+      </div>
 
-        <a
-          href="/dashboard/create"
-          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-        >
-          Retour
-        </a>
+      {/* SÉLECTION CLIENT */}
+      <div className="mb-6">
+        <label className="text-sm font-medium">Client</label>
+
+        <Popover open={openClientSelect} onOpenChange={setOpenClientSelect}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full justify-between mt-1">
+              {selectedClient ? selectedClient.companyName : "Sélectionner un client"}
+            </Button>
+          </PopoverTrigger>
+
+          <PopoverContent className="p-0 w-[400px]">
+            <Command>
+              <CommandInput placeholder="Rechercher un client..." />
+
+              <CommandList>
+                <CommandEmpty>Aucun client trouvé.</CommandEmpty>
+
+                <CommandGroup heading="Clients">
+                  {clients.map((client: any) => (
+                    <CommandItem
+                      key={client.id}
+                      value={client.companyName}
+                      onSelect={() => handleSelectClient(client)}
+                    >
+                      {client.companyName}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* FORMULAIRE */}
       <div className="flex-1">
-        <FormBuilder schema={schema} template={type} onSubmit={handleSubmit} />
+        <FormBuilder schema={schema} template={type} onSubmit={handleSubmit} initialValues={initialValues} />
       </div>
 
       {/* FOOTER FIXE */}
-      <div className="  p-4 mt-8 flex justify-center">
+      <div className="p-4 mt-8 flex justify-center">
         <button
           form="form"
           type="submit"
@@ -179,7 +254,6 @@ export default function CreateDocumentPage() {
           Générer le PDF
         </button>
       </div>
-
     </div>
   );
 }

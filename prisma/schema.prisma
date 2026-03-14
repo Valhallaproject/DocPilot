@@ -21,8 +21,11 @@ model Document {
   userId      String
   template    String
   data        Json
-  pdfPath      String?
+  pdfPath     String?
   createdAt   DateTime  @default(now())
+
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id])
 }
 
 
@@ -51,3 +54,24 @@ model UserPack {
   pack    Pack @relation(fields: [packId], references: [id])
 }
 
+model Client {
+  id          String    @id @default(cuid())
+  userId      String
+
+  companyName String
+  contactName String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  zip         String?
+  country     String?
+  siret       String?
+  vatNumber   String?
+  notes       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  documents   Document[]
+}
