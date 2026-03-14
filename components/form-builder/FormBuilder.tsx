@@ -1,35 +1,67 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Field from "./Field";
 import { Trash2 } from "lucide-react";
-
 
 interface FormBuilderProps {
   schema: any[];
   template: string;
   onSubmit: (data: any) => void;
+  initialValues?: Record<string, any>;
 }
 
-export default function FormBuilder({ schema, template, onSubmit }: FormBuilderProps) {
+export default function FormBuilder({
+  schema,
+  template,
+  onSubmit,
+  initialValues = {},
+}: FormBuilderProps) {
   const [formData, setFormData] = useState<any>({});
 
-  const recomputeFields = (data: any) => {
-    let updated = { ...data };
+  // Injecte les valeurs initiales (ex : client sélectionné)
+  // Remplace l'ancien useEffect par ceci
+  useEffect(() => {
+    if (!initialValues || Object.keys(initialValues).length === 0) return;
 
-    schema.forEach((section) => {
-      if (!section.array && section.fields) {
+    // Initialise proprement puis applique les compute
+    const initial = recomputeFields({ ...initialValues });
+    setFormData(initial);
+  }, [initialValues]);
+
+  const recomputeFields = (data: any) => {
+  let updated = { ...data };
+
+    // Ensure groups and arrays exist
+    schema.forEach((section: any) => {
+      if (section.group) {
+        if (!updated[section.group]) updated[section.group] = {};
+      }
+      if (section.array) {
+        if (!Array.isArray(updated[section.name])) updated[section.name] = [];
+      }
+    });
+
+    schema.forEach((section: any) => {
+      // Champs simples
+      if (!section.array && !section.group && section.fields) {
         section.fields.forEach((field: any) => {
           if (field.compute) updated[field.name] = field.compute(updated);
         });
       }
 
+      // Groupes
       if (section.group && section.fields) {
         section.fields.forEach((field: any) => {
-          if (field.compute) updated[section.group][field.name] = field.compute(updated[section.group]);
+          if (field.compute) {
+            const groupObj = updated[section.group] || {};
+            groupObj[field.name] = field.compute(groupObj);
+            updated[section.group] = groupObj;
+          }
         });
       }
 
+      // Tableaux
       if (section.array && section.fields) {
         const arr = updated[section.name] || [];
         updated[section.name] = arr.map((item: any) => {
@@ -44,6 +76,7 @@ export default function FormBuilder({ schema, template, onSubmit }: FormBuilderP
 
     return updated;
   };
+
 
   const updateField = (name: string, value: any) => {
     setFormData((prev: any) => recomputeFields({ ...prev, [name]: value }));
@@ -78,7 +111,7 @@ export default function FormBuilder({ schema, template, onSubmit }: FormBuilderP
       });
     });
   };
-
+  
 
   return (
     <form
@@ -89,9 +122,9 @@ export default function FormBuilder({ schema, template, onSubmit }: FormBuilderP
         onSubmit(formData);
       }}
     >
-      {schema.map((section: any, index: number) => (
+      {schema?.map((section: any, index: number) => (
         <div key={index} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          
+
           {/* TITRE PREMIUM */}
           <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-4">
             {section.section}
@@ -121,7 +154,7 @@ export default function FormBuilder({ schema, template, onSubmit }: FormBuilderP
                       {section.fields.map((f: any, i: number) => (
                         <th key={i} className="p-2 text-left">{f.label}</th>
                       ))}
-                      <th className="p-2 text-right"></th> {/* colonne vide pour la poubelle */}
+                      <th className="p-2 text-right"></th>
                     </tr>
                   </thead>
 
@@ -140,7 +173,6 @@ export default function FormBuilder({ schema, template, onSubmit }: FormBuilderP
                           </td>
                         ))}
 
-                        {/* BOUTON SUPPRIMER */}
                         <td className="p-2 text-right">
                           <button
                             type="button"
@@ -159,7 +191,6 @@ export default function FormBuilder({ schema, template, onSubmit }: FormBuilderP
                 </table>
               </div>
 
-              {/* BOUTON AJOUTER UNE LIGNE */}
               <button
                 type="button"
                 onClick={() =>
